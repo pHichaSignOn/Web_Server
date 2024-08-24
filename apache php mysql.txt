@@ -1,0 +1,189 @@
+
+Install Homebrew
+
+1.check version
+~% brew -v
+
+2.install Homebrew
+~% /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+3.update Homebrew
+~% brew update
+
+Install Apache using Homebrew
+
+1.Stop default apache
+~% sudo apachectl stop
+~% sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist 2>/dev/null
+
+2. Install apache
+~% brew install httpd
+~% brew services start httpd
+~% brew services restart httpd
+
+3. Browse
+http://localhost:8080
+
+*** /usr/local/var/www      => default root directory (Intel-based Mac)
+*** /opt/homebrew/var/www   => default root directory (Mac with Apple Silicon)
+
+4. Open httpd config file
+- Intel-based Mac
+~% subl /usr/local/etc/httpd/httpd.conf
+
+- Apple Silicon M1
+~% subl /opt/homebrew/etc/httpd/httpd.conf
+
+~% brew install --cask sublime-text
+
+5. Update these lines
+#52
+Listen 8080 -->> Listen 80
+#247
+DocumentRoot "/usr/local/var/www" -->> DocumentRoot "/Users/phcsten/Sites"
+#248
+<Directory "/usr/local/var/www"> -->> <Directory "/Users/phcsten/Sites">
+#268
+AllowOverride None -->> AllowOverride All
+
+#181
+6. Uncomment this line
+LoadModule rewrite_module lib/httpd/modules/mod_rewrite.so
+#192,193
+7. Update these lines
+User _www -->> phcsten
+Group _www -->> staff
+#223
+8. Update this line
+#ServerName www.example.com:8080 -->> ServerName localhost
+
+9. Create Sites folder and add dummy index html file
+~% mkdir ~/Sites
+~% echo "<h2>This is my new index</h2>" > ~/Sites/index.html
+
+10. Restart apache
+~% brew services restart httpd
+~% brew services restart --all
+
+11. Test
+http://localhost
+
+
+Install PHP 8.3 Using Homebrew
+
+1. Add  new tap for php
+~% brew tap shivammathur/php
+
+2. Install PHP8.3
+~% brew install shivammathur/php/php@8.3
+
+3. Link PHP8.3 CLI executable as php
+~% brew link --overwrite --force php@8.3
+
+4. Close terminal
+
+5. Check installed php
+~% php -v
+
+6. Tell apache to use php. Open apache config file
+% subl /usr/local/etc/httpd/httpd.conf
+
+- Apple Silicon
+~% subl /opt/homebrew/etc/httpd/httpd.conf
+
+#182 add
+7. Add the following lib module
+LoadModule php_module /usr/local/opt/php@8.3/lib/httpd/modules/libphp.so
+#282
+8. Set directory indexes for php. Add index.php in this setting
+<IfModule dir_module>
+	DirectoryIndex index.php index.html
+</IfModule>
+#285 add
+9. Add this lines
+<FilesMatch \.php$>
+	SetHandler application/x-httpd-php
+</FilesMatch>
+
+10. Restart apache
+~% brew services restart httpd
+
+11. Validate php
+Create info.php file
+
+12. Test
+http://localhost/info.php
+
+
+InStall MySql using Homebrew
+
+1. Install MySql
+~% brew install mysql
+
+2. Start the MySql server
+~% brew services start mysql
+
+3. Set root MySQL password
+~% mysqladmin -u root password '#bgpu2024'
+
+CREATE USER 'newuser'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'newuser'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+4. Access MySQL on mac
+~% mysql -u root -p
+
+Start MySQL Service
+~% mysql.server start
+
+Stop MySQL Service
+~% mysql.server stop
+
+5. Install DBeaver
+https://dbeaver.io/download/
+
+Create Apache Virtual Host in MacOS
+
+1. Open apache config file
+~% subl /usr/local/etc/httpd/httpd.conf
+#174
+2. Uncomment the following line
+LoadModule vhost_alias_module lib/httpd/modules/mod_vhost_alias.so
+#511
+Include /usr/local/etc/httpd/extra/httpd-vhosts.conf
+
+3. Open vhosts file
+% subl /usr/local/etc/httpd/extra/httpd-vhosts.conf
+#32
+4. Add the following settings
+<VirtualHost *:80>
+    DocumentRoot "/Users/phcsten/Sites"
+    ServerName localhost
+</VirtualHost>
+
+<VirtualHost *:80>
+    DocumentRoot "/Users/phcsten/Sites/web_01"
+    ServerName web-01.test
+</VirtualHost>
+
+<VirtualHost *:80>
+    DocumentRoot "/Users/phcsten/Sites/web_02"
+    ServerName web-02.test
+</VirtualHost>
+
+5. Update hosts file
+~% subl /etc/hosts
+
+6. Add the following lines
+127.0.0.1   localhost
+127.0.0.1   web-01.test
+127.0.0.1   web-02.test
+
+7. Create file in web-01 and web-02 folder
+
+8. Check apache config
+~% apachectl configtest
+
+9. Restart apache
+~% brew services restart httpd
+
